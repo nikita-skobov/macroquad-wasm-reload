@@ -15,7 +15,7 @@ function App() {
     }
     let ignore = false;
     const getWasm = async () => {
-      const data = await load_wasm(`eg${count}.wasm`);
+      const data = await load_wasm(`current.wasm`);
       if (!ignore) {
         setWasmObj(data);
       }
