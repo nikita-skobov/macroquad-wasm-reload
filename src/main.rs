@@ -140,18 +140,31 @@ async fn user_connected(ws: WebSocket) {
 #[tokio::main]
 async fn main() {
     let cargo_dir: PathBuf;
-    loop {
-        println!("Enter a path to watch and 'cargo build' each time it changes:");
-        let mut stdinh = std::io::stdin().lock();
-        let mut line = String::new();
-        stdinh.read_line(&mut line).expect("Failed to read line");
-        line = line.trim().to_string();
-        println!("Looking up cargo package {line}");
-        cargo_dir = PathBuf::from(&line);
-        if !cargo_dir.exists() {
-            println!("That doesnt exist, try again");
+    let first = std::env::args().nth(1);
+    if let Some(first) = first {
+        let mut p = PathBuf::from(first);
+        if let Ok(new_p) = p.canonicalize() {
+            p = new_p;
         }
-        break;
+        if !p.exists() {
+            panic!("Failed to find path {:?}", p);
+        }
+        cargo_dir = p;
+    } else {
+        // no path provided, interactively ask for one:
+        loop {
+            println!("Enter a path to watch and 'cargo build' each time it changes:");
+            let mut stdinh = std::io::stdin().lock();
+            let mut line = String::new();
+            stdinh.read_line(&mut line).expect("Failed to read line");
+            line = line.trim().to_string();
+            println!("Looking up cargo package {line}");
+            cargo_dir = PathBuf::from(&line);
+            if !cargo_dir.exists() {
+                println!("That doesnt exist, try again");
+            }
+            break;
+        }
     }
     let _ = build_wasm(&cargo_dir);
 
