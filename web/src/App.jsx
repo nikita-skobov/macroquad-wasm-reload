@@ -33,16 +33,20 @@ function AppWs({ cb }) {
   useEffect(() => {
     if (!ws.current) return;
 
+    console.log('new websocket? setting up interval again');
     setInterval(() => {
       ws.current.send('test');
     }, 300)
+  }, [ws]);
 
+  useEffect(() => {
+    console.log('changing onmessage to use new cb');
     ws.current.onmessage = (e) => {
       if (e.data === "true") {
         cb();
       }
     };
-  }, [ws]);
+  }, [ws, cb]);
 }
 
 function App() {
@@ -105,6 +109,7 @@ function App() {
   const cb = useCallback(() => {
     console.log("IN CB. getting new wasm");
     if (wasmObj) {
+      console.log('cancelling previous wasm');
       wasmObj.cancel_animation();
       wasmObj = null;
     }

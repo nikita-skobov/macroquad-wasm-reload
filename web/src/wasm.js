@@ -1703,6 +1703,7 @@ function createNewWasmObject() {
             sound_key_next = undefined;
             playback_key_next = undefined;
             lastFocus = undefined;
+            importObject.env = undefined;
             importObject = undefined;
             GL = undefined;
         },
