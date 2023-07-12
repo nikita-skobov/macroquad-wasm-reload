@@ -53,18 +53,6 @@ function App() {
   const canvasRef = useRef(null);
   let [wasmObj, setWasmObj] = useState(null);
   const [isInitialLoad, setInitialLoad] = useState(true);
-  // const [shouldFetch, setShouldFetch] = useState(false);
-
-  // const con = new WebSocket(new_uri);
-  // console.log(con);
-  // con.addEventListener("message", (event) => {
-  //   console.log("Message from server ", event.data);
-  //   let s = event.data;
-  //   if (s === "true") {
-      
-  //   }
-  // });
-
 
   useEffect(() => {
     if (isInitialLoad) {
@@ -75,10 +63,9 @@ function App() {
     console.log('doing initial load')
     let ignore = false;
     const getWasm = async () => {
+      console.log('fetching wasm...');
       const data = await load_wasm(`current.wasm`);
-      if (!ignore) {
-        setWasmObj(data);
-      }
+      setWasmObj(data);
     }
     if (wasmObj === null && !ignore) {
       console.log('going to fetch wasm!');
@@ -104,7 +91,7 @@ function App() {
         console.warn(e);
       }
     }, 1)
-  }, [canvasRef, wasmObj])
+  }, [wasmObj, canvasRef])
 
   const cb = useCallback(() => {
     console.log("IN CB. getting new wasm");
