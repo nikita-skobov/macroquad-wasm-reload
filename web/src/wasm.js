@@ -1471,6 +1471,9 @@ function createNewWasmObject() {
                 let AudioContext = window.AudioContext || window.webkitAudioContext;
                 let ctx = new AudioContext();
                 var fixAudioContext = function (e) {
+                    if (!audio_context) {
+                        return;
+                    }
                     console.log("fix");
     
                     // On newer Safari AudioContext starts in a suspended state per
