@@ -9,10 +9,17 @@ const JS_FILE: &str = include_str!(env!("JS_FILE"));
 const CSS_FILE: &str = include_str!(env!("CSS_FILE"));
 
 /// returns path to .wasm file
-fn build_wasm(cargo_path: &PathBuf) -> PathBuf {
+fn build_wasm(cargo_path: &PathBuf, release: bool) -> PathBuf {
     println!("Building wasm in {:?}", cargo_path);
+    let profile = if release {
+        "release"
+    } else {
+        "dev"
+    };
     let out = Command::new("cargo")
         .arg("build")
+        .arg("--profile")
+        .arg(profile)
         .arg("--target")
         .arg("wasm32-unknown-unknown")
         .current_dir(cargo_path)
@@ -27,7 +34,11 @@ fn build_wasm(cargo_path: &PathBuf) -> PathBuf {
     let mut out_file = cargo_path.clone();
     out_file.push("target");
     out_file.push("wasm32-unknown-unknown");
-    out_file.push("debug");
+    if release {
+        out_file.push("release");
+    } else {
+        out_file.push("debug");
+    }
     out_file.push(wasm_name);
     if !out_file.exists() {
         panic!("Failed to find .wasm file after build {:?}", out_file);
@@ -140,8 +151,14 @@ async fn user_connected(ws: WebSocket) {
 #[tokio::main]
 async fn main() {
     let cargo_dir: PathBuf;
+    let mut build_release = false;
     let first = std::env::args().nth(1);
     if let Some(first) = first {
+        if let Some(second) = std::env::args().nth(2) {
+            if second.contains("release") {
+                build_release = true;
+            }
+        }
         let mut p = PathBuf::from(first);
         if let Ok(new_p) = p.canonicalize() {
             p = new_p;
@@ -166,7 +183,7 @@ async fn main() {
             break;
         }
     }
-    let _ = build_wasm(&cargo_dir);
+    let _ = build_wasm(&cargo_dir, build_release);
 
     let cargo_dir_copy = cargo_dir.clone();
     std::thread::spawn(move || {
@@ -208,7 +225,7 @@ async fn main() {
         });
     let wasm_route: _ = warp::path("current.wasm")
         .map(move || {
-            let wasm_file = build_wasm(&cargo_dir);
+            let wasm_file = build_wasm(&cargo_dir, build_release);
             let mut data = std::fs::File::open(&wasm_file).expect("Failed to read wasm file");
             let mut bytes = vec![];
             data.read_to_end(&mut bytes).expect("Failed to read wasm file");
